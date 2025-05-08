@@ -6,31 +6,118 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    .character-img {
-      max-width: 500px;
-      border-radius: 10px;
-    }
-    
     @font-face {
       font-family: 'Luna';
       src: url('assets/fonts/Luna.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
     }
 
-    /* Use more styles as needed */
-  
+    body {
+      background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)),
+                  url('assets/bg-8.webp');
+      background-size: cover;
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-family: 'Luna', sans-serif;
+      text-align: center;
+      margin: 30px 0;
+      color: #2c3e50;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .character-img {
+      max-width: 400px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin: 20px auto;
+      background: white;
+      padding: 5px;
+    }
+
+    .result-card {
+      background: rgba(248, 249, 250, 0.95);
+      border-radius: 15px;
+      padding: 30px;
+      margin: 30px auto;
+      max-width: 600px;
+      backdrop-filter: blur(5px);
+    }
+
+    .traits-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.8);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .form-check-label {
+      font-size: 1.1rem;
+      color: #495057;
+    }
   </style>
 </head>
 <body class="p-4">
+  <div id="app">
+    <h1>Which Ghibli Character Are You?</h1>
 
-  <!-- Complete this part -->
+    <!-- Traits Selection -->
+    <div class="container traits-container">
+      <div class="row row-cols-1 row-cols-md-4 g-4">
+        <div class="col" v-for="trait in availableTraits" :key="trait">
+          <div class="form-check">
+            <input 
+              class="form-check-input" 
+              type="checkbox" 
+              :id="trait" 
+              :value="trait"
+              v-model="selectedTraits"
+            >
+            <label class="form-check-label" :for="trait">
+              {{ trait }}
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reveal Button -->
+    <div class="d-flex justify-content-center mt-5">
+      <button 
+        class="btn btn-lg btn-primary px-5" 
+        @click="findCharacter"
+      >
+        Reveal My Character
+      </button>
+    </div>
+
+    <!-- Results -->
+    <div v-if="result" class="result-card text-center">
+      <h2 class="mb-4">You are most like {{ result.name }}!</h2>
+      <img :src="result.image" :alt="result.name" class="character-img">
+      <p class="lead mt-3">{{ result.description }}</p>
+    </div>
+
+    <!-- No Results Alert -->
+    <div v-else-if="noResult" class="alert alert-warning mt-4 mx-auto" style="max-width: 600px;">
+      Hmm...Either you didn't select any traits or we couldn't find a match. Please try again
+    </div>
+  </div>
 
 <script>
 Vue.createApp({
   data() {
     return {
-      /* complete this part */
+      availableTraits: [
+        'Protective', 'Independent', 'Empathetic', 'Mysterious',
+        'Mischievous', 'Dreamy', 'Hardworking', 'Loyal',
+        'Funny', 'Witty', 'Brave', 'Adventurous',
+        'Curious', 'Kind', 'Quiet', 'Ambitious', 'Magical'
+      ],
+      selectedTraits: [],
       characters: [
         {
           name: 'Totoro',
@@ -90,11 +177,19 @@ Vue.createApp({
       this.result = null;
       this.noResult = false;
 
+      if (this.selectedTraits.length === 0) {
+        this.noResult = true;
+        return;
+      }
+
       let bestMatch = null;
       let highestScore = 0;
 
       for (const char of this.characters) {
-        const matchCount = char.traits.filter(trait => this.selectedTraits.includes(trait)).length;
+        const matchCount = char.traits.filter(t => 
+          this.selectedTraits.includes(t)
+        ).length;
+        
         if (matchCount > highestScore) {
           bestMatch = char;
           highestScore = matchCount;
